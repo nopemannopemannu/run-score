@@ -1,22 +1,20 @@
-import streamlit as st
-import pandas as pd
-import math
-from datetime import datetime, date, timedelta
-import time
+import streamlit as s
+import pandas as p
+import math as m
+from datetime import datetime as d, date as dt, timedelta as td
+import time as t
 
-st.set_page_config(page_title="Run Tools", layout="wide", initial_sidebar_state="expanded")
+s.set_page_config(page_title="Run Tools", layout="wide", initial_sidebar_state="expanded")
 
-# --- Theme toggle ---
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = False
+if "dm" not in s.session_state:
+    s.session_state.dm = False
 
-if st.sidebar.toggle("🌗 Dark Mode", value=st.session_state.dark_mode, key="dark_toggle") != st.session_state.dark_mode:
-    st.session_state.dark_mode = not st.session_state.dark_mode
-    st.rerun()
+if s.sidebar.toggle("🌗 Dark Mode", value=s.session_state.dm, key="dark_toggle") != s.session_state.dm:
+    s.session_state.dm = not s.session_state.dm
+    s.rerun()
 
-# --- Style ---
-if st.session_state.dark_mode:
-    st.markdown("""
+if s.session_state.dm:
+    s.markdown("""
     <style>
     body, div, .stApp {
         background-color: #1e1e1e;
@@ -50,7 +48,7 @@ if st.session_state.dark_mode:
     </style>
     """, unsafe_allow_html=True)
 else:
-    st.markdown("""
+    s.markdown("""
     <style>
     div.block-container {
         padding: 0.5rem 1rem !important;
@@ -84,123 +82,116 @@ else:
     </style>
     """, unsafe_allow_html=True)
 
-# --- Navigation State ---
-if "main_page" not in st.session_state:
-    st.session_state.main_page = "home"
+if "pg" not in s.session_state:
+    s.session_state.pg = "home"
 
-# --- Home Page ---
-def show_home():
-    st.title("🏁 Welcome to Run Tools")
-    st.write("Choose a tool below:")
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("📏 Running Pace Calculator"):
-            st.session_state.main_page = "pace"
-        if st.button("💧 Hydration Planner"):
-            st.session_state.main_page = "hydration"
-        if st.button("☁️ Run Readiness Score"):
-            st.session_state.main_page = "score"
-        if st.button("📅 Race Countdown"):
-            st.session_state.main_page = "countdown"
-    with col2:
-        if st.button("👟 Shoe Mileage Tracker"):
-            st.session_state.main_page = "shoes"
-        if st.button("🧠 Mental Readiness Log"):
-            st.session_state.main_page = "mental"
-        if st.button("🛌 Sleep Quality Tracker"):
-            st.session_state.main_page = "sleep"
-        if st.button("🦵 Injury Tracker"):
-            st.session_state.main_page = "injury"
+# Updated navigation handler to use on_click callbacks
 
-# --- Functional Pages ---
-def show_pace_calculator():
-    st.button("⬅️ Back to Home", on_click=lambda: st.session_state.update({"main_page": "home"}))
-    st.subheader("📏 Running Pace Calculator")
-    goal_distance = st.number_input("Target Distance (km)", min_value=1.0, step=0.1)
-    lap_length = st.number_input("Lap Length (km)", min_value=0.1, step=0.01)
-    goal_time = st.time_input("Goal Time")
-    if goal_distance and lap_length and goal_time:
-        total_seconds = goal_time.hour * 3600 + goal_time.minute * 60 + goal_time.second
-        pace_per_km = total_seconds / goal_distance
-        num_full_laps = int(goal_distance // lap_length)
-        leftover = goal_distance - (num_full_laps * lap_length)
+def go_to(page):
+    def switch():
+        s.session_state.pg = page
+    return switch
 
-        st.write("### Breakdown:")
-        for lap in range(1, num_full_laps + 1):
-            st.write(f"Lap {lap}: {lap_length:.2f} km @ {pace_per_km:.2f} sec/km = {pace_per_km * lap_length:.1f} sec")
-        if leftover > 0:
-            st.write(f"Lap {num_full_laps + 1}: {leftover:.2f} km @ {pace_per_km:.2f} sec/km = {pace_per_km * leftover:.1f} sec")
+def h():
+    s.title("🏁 Welcome to Run Tools")
+    s.write("Choose a tool below:")
+    c1, c2 = s.columns(2)
+    with c1:
+        s.button("📏 Running Pace Calculator", on_click=go_to("pace"))
+        s.button("💧 Hydration Planner", on_click=go_to("hydration"))
+        s.button("☁️ Run Readiness Score", on_click=go_to("score"))
+        s.button("📅 Race Countdown", on_click=go_to("countdown"))
+    with c2:
+        s.button("👟 Shoe Mileage Tracker", on_click=go_to("shoes"))
+        s.button("🧠 Mental Readiness Log", on_click=go_to("mental"))
+        s.button("🛌 Sleep Quality Tracker", on_click=go_to("sleep"))
+        s.button("🦵 Injury Tracker", on_click=go_to("injury"))
 
-def show_hydration_planner():
-    st.button("⬅️ Back to Home", on_click=lambda: st.session_state.update({"main_page": "home"}))
-    st.subheader("💧 Hydration Planner")
-    duration = st.slider("Run Duration (minutes)", 10, 180, 60)
-    temperature = st.slider("Temperature (°C)", 10, 40, 25)
-    intensity = st.selectbox("Intensity", ["Low", "Medium", "High"])
+def p():
+    s.button("⬅️ Back to Home", on_click=go_to("home"))
+    s.subheader("📏 Running Pace Calculator")
+    gd = s.number_input("Target Distance (km)", min_value=1.0, step=0.1)
+    ll = s.number_input("Lap Length (km)", min_value=0.1, step=0.01)
+    gt = s.time_input("Goal Time")
+    if gd and ll and gt:
+        ts = gt.hour * 3600 + gt.minute * 60 + gt.second
+        ppk = ts / gd
+        nfl = int(gd // ll)
+        lo = gd - (nfl * ll)
 
-    multiplier = {"Low": 0.4, "Medium": 0.6, "High": 0.8}[intensity]
-    water_needed = duration * multiplier * (1 + (temperature - 20) * 0.03)
-    st.metric("Recommended Water Intake", f"{water_needed:.0f} ml")
+        s.write("### Breakdown:")
+        for l in range(1, nfl + 1):
+            s.write(f"Lap {l}: {ll:.2f} km @ {ppk:.2f} sec/km = {ppk * ll:.1f} sec")
+        if lo > 0:
+            s.write(f"Lap {nfl + 1}: {lo:.2f} km @ {ppk:.2f} sec/km = {ppk * lo:.1f} sec")
 
-def show_mental_log():
-    st.button("⬅️ Back to Home", on_click=lambda: st.session_state.update({"main_page": "home"}))
-    st.subheader("🧠 Mental Readiness Log")
-    mood = st.slider("How motivated are you today?", 1, 10, 5)
-    stress = st.slider("Stress level", 1, 10, 5)
-    note = st.text_area("Mental Notes")
-    if st.button("📝 Save Mental Log"):
-        st.success("Mental state logged!")
+def hy():
+    s.button("⬅️ Back to Home", on_click=go_to("home"))
+    s.subheader("💧 Hydration Planner")
+    dur = s.slider("Run Duration (minutes)", 10, 180, 60)
+    temp = s.slider("Temperature (°C)", 10, 40, 25)
+    inten = s.selectbox("Intensity", ["Low", "Medium", "High"])
+    mul = {"Low": 0.4, "Medium": 0.6, "High": 0.8}[inten]
+    wn = dur * mul * (1 + (temp - 20) * 0.03)
+    s.metric("Recommended Water Intake", f"{wn:.0f} ml")
 
-def show_sleep_tracker():
-    st.button("⬅️ Back to Home", on_click=lambda: st.session_state.update({"main_page": "home"}))
-    st.subheader("🛌 Sleep Quality Tracker")
-    hours = st.slider("Hours Slept", 0, 12, 7)
-    quality = st.selectbox("Sleep Quality", ["Poor", "Fair", "Good", "Excellent"])
-    if st.button("🛏️ Log Sleep"):
-        st.success(f"Sleep logged: {hours}h - {quality}")
+def mlog():
+    s.button("⬅️ Back to Home", on_click=go_to("home"))
+    s.subheader("🧠 Mental Readiness Log")
+    m = s.slider("How motivated are you today?", 1, 10, 5)
+    st = s.slider("Stress level", 1, 10, 5)
+    note = s.text_area("Mental Notes")
+    if s.button("📝 Save Mental Log"):
+        s.success("Mental state logged!")
 
-def show_race_countdown():
-    st.button("⬅️ Back to Home", on_click=lambda: st.session_state.update({"main_page": "home"}))
-    st.subheader("📅 Race Countdown")
-    race_date = st.date_input("Select your race date:", value=date.today())
-    race_time = st.time_input("Select race time:", value=datetime.now().time())
-    race_datetime = datetime.combine(race_date, race_time)
+def sl():
+    s.button("⬅️ Back to Home", on_click=go_to("home"))
+    s.subheader("🛌 Sleep Quality Tracker")
+    h = s.slider("Hours Slept", 0, 12, 7)
+    q = s.selectbox("Sleep Quality", ["Poor", "Fair", "Good", "Excellent"])
+    if s.button("🛏️ Log Sleep"):
+        s.success(f"Sleep logged: {h}h - {q}")
 
-    placeholder = st.empty()
+def rc():
+    s.button("⬅️ Back to Home", on_click=go_to("home"))
+    s.subheader("📅 Race Countdown")
+    rd = s.date_input("Select your race date:", value=dt.today())
+    rt = s.time_input("Select race time:", value=d.now().time())
+    rdt = d.combine(rd, rt)
+    pl = s.empty()
     while True:
-        now = datetime.now()
-        delta = race_datetime - now
-        if delta.total_seconds() < 0:
-            placeholder.warning("⚠️ Race date is in the past.")
+        nw = d.now()
+        dl = rdt - nw
+        if dl.total_seconds() < 0:
+            pl.warning("⚠️ Race date is in the past.")
             break
-        days = delta.days
-        hours, remainder = divmod(delta.seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        placeholder.markdown(f"""
-        <h1 style='text-align:center; font-size:3rem;'>🏁 {days} Days {hours:02d}:{minutes:02d}:{seconds:02d}</h1>
+        dy = dl.days
+        h, r = divmod(dl.seconds, 3600)
+        m, sc = divmod(r, 60)
+        pl.markdown(f"""
+        <h1 style='text-align:center; font-size:3rem;'>🏁 {dy} Days {h:02d}:{m:02d}:{sc:02d}</h1>
         """, unsafe_allow_html=True)
-        time.sleep(1)
+        t.sleep(1)
 
-def show_injury_tracker():
-    st.button("⬅️ Back to Home", on_click=lambda: st.session_state.update({"main_page": "home"}))
-    st.subheader("🦵 Injury Tracker")
-    injury_type = st.selectbox("Injury Type", ["None", "Knee", "Shin", "Ankle", "Hip", "Other"])
-    severity = st.slider("Severity (1=minor, 10=severe)", 1, 10, 3)
-    notes = st.text_area("Additional Notes")
-    if st.button("📝 Save Injury Log"):
-        st.success("Injury info saved!")
+def inj():
+    s.button("⬅️ Back to Home", on_click=go_to("home"))
+    s.subheader("🦵 Injury Tracker")
+    it = s.selectbox("Injury Type", ["None", "Knee", "Shin", "Ankle", "Hip", "Other"])
+    sev = s.slider("Severity (1=minor, 10=severe)", 1, 10, 3)
+    nts = s.text_area("Additional Notes")
+    if s.button("📝 Save Injury Log"):
+        s.success("Injury info saved!")
 
-# --- Router ---
-page_functions = {
-    "home": show_home,
-    "pace": show_pace_calculator,
-    "hydration": show_hydration_planner,
-    "score": lambda: st.write("☁️ Placeholder for Readiness Score"),
-    "shoes": lambda: st.write("👟 Placeholder for Shoe Tracker"),
-    "mental": show_mental_log,
-    "sleep": show_sleep_tracker,
-    "countdown": show_race_countdown,
-    "injury": show_injury_tracker,
+pgs = {
+    "home": h,
+    "pace": p,
+    "hydration": hy,
+    "score": lambda: s.write("☁️ Placeholder for Readiness Score"),
+    "shoes": lambda: s.write("👟 Placeholder for Shoe Tracker"),
+    "mental": mlog,
+    "sleep": sl,
+    "countdown": rc,
+    "injury": inj,
 }
 
-page_functions[st.session_state.main_page]()
+pgs[s.session_state.pg]()
